@@ -100,3 +100,17 @@ func FetchUserProducts() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, products)
 	}
 }
+
+func GetAllProducts() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		var users []model.User
+		result := repo.Find(&users)
+		if result.Error != nil {
+			defer cancel()
+			return c.JSON(http.StatusInternalServerError, "error occured fetching products")
+		}
+		defer cancel()
+		return c.JSON(http.StatusOK, users)
+	}
+}

@@ -12,6 +12,7 @@ import (
 func Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		currentUser := c.Get("current-user").(*helper.SignedDetails)
+		fmt.Println("middleware fired")
 		if currentUser == nil {
 			return c.JSON(http.StatusUnauthorized, "Restricted route")
 		}

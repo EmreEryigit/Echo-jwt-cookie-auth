@@ -6,7 +6,6 @@ import (
 	"echojwt/helper"
 	"echojwt/model"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -22,13 +21,6 @@ var repo *gorm.DB = database.ConnectDB()
 var validate = validator.New()
 var Store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
-func HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 8)
-	if err != nil {
-		log.Panic(err)
-	}
-	return string(hash)
-}
 func VerifyPassword(providedPassword string, storedHash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(providedPassword))
 	valid := true
@@ -61,9 +53,7 @@ func Signup() echo.HandlerFunc {
 			defer cancel()
 			return c.JSON(http.StatusConflict, "email already taken")
 		}
-		hashedPassword := HashPassword(*userPrivate.Password)
-		// store hashed password in hashedpassword column
-		userPrivate.HashedPassword = &hashedPassword
+		userPrivate.HashPassword()
 		user := userPrivate.User
 		repo.Save(&user)
 		jwtToken, err := helper.GenerateJWT(fmt.Sprint(userPrivate.ID), *userPrivate.Name, *userPrivate.Email)

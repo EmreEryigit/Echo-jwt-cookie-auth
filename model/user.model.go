@@ -1,6 +1,11 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"log"
+
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
 
 type User struct {
 	gorm.Model
@@ -13,4 +18,13 @@ type User struct {
 type UserPrivate struct {
 	User
 	Password *string `json:"password" validate:"required,min=2,max=100"`
+}
+
+func (u *UserPrivate) HashPassword() {
+	hash, err := bcrypt.GenerateFromPassword([]byte(*u.Password), 8)
+	if err != nil {
+		log.Panic(err)
+	}
+	str := string(hash)
+	u.HashedPassword = &str
 }

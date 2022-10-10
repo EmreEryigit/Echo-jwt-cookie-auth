@@ -4,6 +4,7 @@ import (
 	"echojwt/database"
 	"echojwt/middleware"
 	"echojwt/route"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -21,12 +22,16 @@ func main() {
 	port := os.Getenv("PORT")
 	e := echo.New()
 	e.Use(middleware.CurrentUser)
+	fmt.Println("main fired")
 	authG := e.Group("/auth")
-	userG := e.Group("")
+	userG := e.Group("/users")
+	productG := e.Group("/products")
+	route.ProductRoutes(productG)
+	route.AuthRoutes(authG)
+	route.UserRoutes(userG)
 	e.Any("*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "wrong url or method!")
 	})
-	route.PublicRoute(authG)
-	route.ProtectedRoute(userG)
+
 	e.Logger.Fatal(e.Start(":" + port))
 }
