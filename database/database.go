@@ -2,6 +2,7 @@ package database
 
 import (
 	"echojwt/model"
+	"fmt"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -14,5 +15,7 @@ func ConnectDB() *gorm.DB {
 	}
 
 	db.AutoMigrate(&model.User{})
+	fmt.Println("Connected to db")
+
 	return db
 }

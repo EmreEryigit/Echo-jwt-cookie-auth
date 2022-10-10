@@ -1,6 +1,8 @@
 package main
 
 import (
+	"echojwt/database"
+	"echojwt/middleware"
 	"echojwt/route"
 	"log"
 	"os"
@@ -14,8 +16,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	database.ConnectDB()
 	port := os.Getenv("PORT")
 	e := echo.New()
+	e.Use(middleware.CurrentUser)
 	authG := e.Group("/auth")
 	userG := e.Group("/user")
 	route.PublicRoute(authG)

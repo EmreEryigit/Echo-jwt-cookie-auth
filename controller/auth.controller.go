@@ -23,7 +23,7 @@ var validate = validator.New()
 var Store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 func HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 16)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -66,7 +66,6 @@ func Signup() echo.HandlerFunc {
 			defer cancel()
 			return c.JSON(http.StatusInternalServerError, "error while generating jwt token")
 		}
-
 		session, _ := Store.Get(c.Request(), "auth-session")
 		session.Values["auth"] = jwtToken
 		err = session.Save(c.Request(), c.Response())
@@ -75,7 +74,6 @@ func Signup() echo.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, "error while generating jwt token")
 			return err
 		}
-
 		c.JSON(http.StatusOK, user.Email)
 		defer cancel()
 		return err

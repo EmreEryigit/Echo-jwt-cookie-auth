@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -44,7 +43,6 @@ func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
 			return SESSION_KEY, nil
 		},
 	)
-	fmt.Println(token)
 	if err != nil {
 		msg = "error while parsing jwt"
 		return
@@ -54,7 +52,6 @@ func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
 		msg = "the token is invalid"
 		return
 	}
-	fmt.Println(claims)
 
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		msg = "token is expired"

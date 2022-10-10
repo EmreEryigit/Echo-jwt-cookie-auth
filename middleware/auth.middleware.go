@@ -11,16 +11,21 @@ import (
 
 func Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		session, err := controller.Store.Get(c.Request(), "auth-session")
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, "no cookie provided")
+		currentUser := c.Get("current-user").(*helper.SignedDetails)
+		fmt.Println(currentUser.Uid)
+		fmt.Println("Authenticate")
+		if currentUser.Email == "" || currentUser.Uid == "" {
+			return c.JSON(http.StatusUnauthorized, "Restricted route")
 		}
+		return next(c)
+	}
+}
+
+func CurrentUser(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		session, _ := controller.Store.Get(c.Request(), "auth-session")
 		strJwt := fmt.Sprintf("%v", session.Values["auth"])
-		claims, msg := helper.ValidateToken(strJwt)
-		fmt.Println(claims)
-		if msg != "" {
-			return c.JSON(http.StatusUnauthorized, "invalid token")
-		}
+		claims, _ := helper.ValidateToken(strJwt)
 		c.Set("current-user", claims)
 		return next(c)
 	}
