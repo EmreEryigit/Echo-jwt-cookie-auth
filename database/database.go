@@ -14,7 +14,7 @@ func ConnectDB() *gorm.DB {
 		panic("failed to connect to DB")
 	}
 
-	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.User{}, &model.Product{})
 	fmt.Println("Connected to db")
 
 	return db

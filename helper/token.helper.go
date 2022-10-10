@@ -3,25 +3,31 @@ package helper
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
 type SignedDetails struct {
-	Email string
-	Name  string
-	Uid   string
+	Email  string
+	Name   string
+	UserID uint
 	jwt.StandardClaims
 }
 
 var SESSION_KEY = []byte(os.Getenv("SESSION_KEY"))
 
 func GenerateJWT(userId string, name string, email string) (signedToken string, err error) {
+	strUserID, err := strconv.Atoi(userId)
+	if err != nil {
+		log.Panic(err)
+		return
+	}
 	claims := SignedDetails{
-		Email: email,
-		Name:  name,
-		Uid:   userId,
+		Email:  email,
+		Name:   name,
+		UserID: uint(strUserID),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * time.Duration(1)).Unix(),
 		},

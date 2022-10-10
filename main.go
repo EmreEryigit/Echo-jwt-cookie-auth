@@ -5,6 +5,7 @@ import (
 	"echojwt/middleware"
 	"echojwt/route"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -21,7 +22,10 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.CurrentUser)
 	authG := e.Group("/auth")
-	userG := e.Group("/user")
+	userG := e.Group("")
+	e.Any("*", func(c echo.Context) error {
+		return c.String(http.StatusNotFound, "wrong url or method!")
+	})
 	route.PublicRoute(authG)
 	route.ProtectedRoute(userG)
 	e.Logger.Fatal(e.Start(":" + port))

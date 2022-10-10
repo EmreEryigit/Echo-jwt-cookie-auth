@@ -23,14 +23,16 @@ var validate = validator.New()
 var Store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 func HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 8)
 	if err != nil {
 		log.Panic(err)
 	}
 	return string(hash)
 }
 func VerifyPassword(providedPassword string, storedHash string) bool {
+	fmt.Println("before")
 	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(providedPassword))
+	fmt.Println("after")
 	valid := true
 	if err != nil {
 		valid = false
@@ -122,7 +124,7 @@ func Login() echo.HandlerFunc {
 	}
 }
 
-func GetSelf() echo.HandlerFunc {
+func WhoAmI() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		claims := c.Get("current-user")
 		return c.JSON(http.StatusOK, claims)

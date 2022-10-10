@@ -9,5 +9,6 @@ import (
 
 func ProtectedRoute(g *echo.Group) {
 	g.Use(middleware.Authenticate)
-	g.GET("/", controller.GetSelf())
+	g.GET("/", controller.WhoAmI())
+	g.POST("/products", controller.CreateProduct())
 }
