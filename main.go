@@ -18,7 +18,7 @@ func main() {
 	e := echo.New()
 	authG := e.Group("/auth")
 	userG := e.Group("/user")
-	route.AuthRoute(authG)
-	route.UserRoutes(userG)
+	route.PublicRoute(authG)
+	route.ProtectedRoute(userG)
 	e.Logger.Fatal(e.Start(":" + port))
 }

@@ -23,6 +23,5 @@ func Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		c.Set("current-user", claims)
 		return next(c)
-
 	}
 }
