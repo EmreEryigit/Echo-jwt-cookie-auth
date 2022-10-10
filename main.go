@@ -4,7 +4,6 @@ import (
 	"echojwt/database"
 	"echojwt/middleware"
 	"echojwt/route"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +21,6 @@ func main() {
 	port := os.Getenv("PORT")
 	e := echo.New()
 	e.Use(middleware.CurrentUser)
-	fmt.Println("main fired")
 	authG := e.Group("/auth")
 	userG := e.Group("/users")
 	productG := e.Group("/products")

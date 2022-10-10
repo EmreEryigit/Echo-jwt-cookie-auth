@@ -12,7 +12,6 @@ func ProductRoutes(g *echo.Group) {
 	fmt.Println("route fired")
 	g.GET("/", controller.GetAllProducts())
 	g.GET("/:userId", controller.FetchUserProducts())
-	fmt.Println("route fired")
 	// authenticated routes
 	g.Use(middleware.Authenticate)
 	g.POST("/", controller.CreateProduct())

@@ -44,7 +44,7 @@ func Signup() echo.HandlerFunc {
 		validationError := validate.Struct(userPrivate)
 		if validationError != nil {
 			defer cancel()
-			return c.JSON(http.StatusBadRequest, "invalid request")
+			return c.JSON(http.StatusBadRequest, validationError.Error())
 		}
 		var count int64
 		repo.Model(&model.User{}).Where("email = ?", userPrivate.Email).Count(&count)
@@ -113,6 +113,21 @@ func Login() echo.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, foundUser)
 		defer cancel()
+		return err
+	}
+}
+
+func Logout() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		session, err := Store.Get(c.Request(), "auth-session")
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "error sessions")
+		}
+		session.Options.MaxAge = -1
+		err = session.Save(c.Request(), c.Response().Writer)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "error saving session")
+		}
 		return err
 	}
 }

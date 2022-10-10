@@ -2,7 +2,7 @@ package route
 
 import (
 	"echojwt/controller"
-	"fmt"
+	"echojwt/middleware"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,7 +11,8 @@ import (
 func AuthRoutes(g *echo.Group) {
 	g.POST("/login", controller.Login())
 	g.POST("/signup", controller.Signup())
-	fmt.Println("route fired1")
+	g.Use(middleware.Authenticate)
+	g.POST("/logout", controller.Logout())
 	g.Any("*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "wrong url or method!")
 	})
