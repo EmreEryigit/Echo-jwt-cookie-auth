@@ -30,9 +30,7 @@ func HashPassword(password string) string {
 	return string(hash)
 }
 func VerifyPassword(providedPassword string, storedHash string) bool {
-	fmt.Println("before")
 	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(providedPassword))
-	fmt.Println("after")
 	valid := true
 	if err != nil {
 		valid = false
@@ -43,27 +41,32 @@ func VerifyPassword(providedPassword string, storedHash string) bool {
 func Signup() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		var user model.User
-		if err := c.Bind(&user); err != nil {
+
+		// first initialize private user for password validation
+		var userPrivate model.UserPrivate
+		if err := c.Bind(&userPrivate); err != nil {
 			defer cancel()
 			return c.JSON(http.StatusBadRequest, "invalid request")
 		}
-		validationError := validate.Struct(user)
+		// validate
+		validationError := validate.Struct(userPrivate)
 		if validationError != nil {
 			defer cancel()
 			return c.JSON(http.StatusBadRequest, "invalid request")
 		}
 		var count int64
-		repo.Model(&model.User{}).Where("email = ?", user.Email).Count(&count)
+		repo.Model(&model.User{}).Where("email = ?", userPrivate.Email).Count(&count)
 
 		if count > 0 {
 			defer cancel()
 			return c.JSON(http.StatusConflict, "email already taken")
 		}
-		hashedPassword := HashPassword(*user.Password)
-		user.Password = &hashedPassword
+		hashedPassword := HashPassword(*userPrivate.Password)
+		// store hashed password in hashedpassword column
+		userPrivate.HashedPassword = &hashedPassword
+		user := userPrivate.User
 		repo.Save(&user)
-		jwtToken, err := helper.GenerateJWT(fmt.Sprint(user.ID), *user.Name, *user.Email)
+		jwtToken, err := helper.GenerateJWT(fmt.Sprint(userPrivate.ID), *userPrivate.Name, *userPrivate.Email)
 		if err != nil {
 			defer cancel()
 			return c.JSON(http.StatusInternalServerError, "error while generating jwt token")
@@ -76,7 +79,7 @@ func Signup() echo.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, "error while generating jwt token")
 			return err
 		}
-		c.JSON(http.StatusOK, user.Email)
+		c.JSON(http.StatusOK, user)
 		defer cancel()
 		return err
 	}
@@ -86,7 +89,7 @@ func Signup() echo.HandlerFunc {
 func Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		var user model.User
+		var user model.UserPrivate
 		var foundUser model.User
 		if err := c.Bind(&user); err != nil {
 			defer cancel()
@@ -101,7 +104,7 @@ func Login() echo.HandlerFunc {
 			defer cancel()
 			return c.JSON(http.StatusBadRequest, "user not found")
 		}
-		isValid := VerifyPassword(*user.Password, *foundUser.Password)
+		isValid := VerifyPassword(*user.Password, *foundUser.HashedPassword)
 		if !isValid {
 			defer cancel()
 			return c.JSON(http.StatusBadRequest, "invalid email or password")
@@ -118,7 +121,7 @@ func Login() echo.HandlerFunc {
 			defer cancel()
 			return c.JSON(http.StatusInternalServerError, "could not save the cookie")
 		}
-		c.JSON(http.StatusOK, foundUser.Email)
+		c.JSON(http.StatusOK, foundUser)
 		defer cancel()
 		return err
 	}
@@ -126,7 +129,9 @@ func Login() echo.HandlerFunc {
 
 func WhoAmI() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		claims := c.Get("current-user")
-		return c.JSON(http.StatusOK, claims)
+		claims := c.Get("current-user").(*helper.SignedDetails)
+		var user model.User
+		repo.Model(&model.User{}).Preload("Products").First(&user, claims.UserID)
+		return c.JSON(http.StatusOK, user)
 	}
 }
